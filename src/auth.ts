@@ -9,4 +9,10 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   session: { strategy: "database" },
   providers: [GitHub, Resend({ from: process.env.AUTH_EMAIL_FROM })],
   pages: { signIn: "/login" },
+  callbacks: {
+    session({ session, user }) {
+      session.user.id = user.id;
+      return session;
+    },
+  },
 });

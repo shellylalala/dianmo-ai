@@ -12,7 +12,7 @@ const Hero = () => {
       </p>
       <div className="mt-10 flex justify-center gap-4">
         <Button asChild size="lg">
-          <Link href="/login">免费开始</Link>
+          <Link href="/dashboard">免费开始</Link>
         </Button>
         <Button asChild size="lg" variant="outline">
           <Link href="/features">了解更多</Link>

@@ -19,6 +19,8 @@ model User {
   image         String?
   accounts      Account[]
   sessions      Session[]
+  documents     Document[]
+  folders       Folder[]
   createdAt     DateTime  @default(now())
 }
 
@@ -52,4 +54,35 @@ model VerificationToken {
   expires    DateTime
 
   @@id([identifier, token])
+}
+
+model Folder {
+  id        String     @id @default(cuid())
+  name      String
+  ownerId   String
+  parentId  String?
+  order     Int        @default(0)
+  owner     User       @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  parent    Folder?    @relation("FolderTree", fields: [parentId], references: [id], onDelete: Cascade)
+  children  Folder[]   @relation("FolderTree")
+  documents Document[]
+  createdAt DateTime   @default(now())
+
+  @@index([ownerId])
+}
+
+model Document {
+  id        String   @id @default(cuid())
+  title     String   @default("无标题")
+  content   Json?    // Tiptap JSON，P4 才真正写入
+  ownerId   String
+  folderId  String?
+  order     Int      @default(0)
+  owner     User     @relation(fields: [ownerId], references: [id], onDelete: Cascade)
+  folder    Folder?  @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([ownerId])
+  @@index([folderId])
 }
