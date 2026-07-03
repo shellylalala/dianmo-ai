@@ -4,6 +4,7 @@ import { auth, signOut } from "@/auth";
 import { prisma } from "@/lib/prisma";
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
+import type { Prisma } from "@prisma/client";
 
 export async function handleSignOut() {
   await signOut({ redirectTo: "/" });
@@ -32,4 +33,15 @@ export async function deleteDocument(id: string) {
   await prisma.document.deleteMany({ where: { id, ownerId } });
   revalidatePath("/dashboard");
   redirect("/dashboard");
+}
+
+export async function updateDocumentContent(
+  id: string,
+  content: Prisma.InputJsonValue,
+) {
+  const ownerId = await uid();
+  await prisma.document.updateMany({
+    where: { id, ownerId },
+    data: { content },
+  });
 }
