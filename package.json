@@ -10,6 +10,8 @@
     "format": "prettier --write ."
   },
   "dependencies": {
+    "@ai-sdk/deepseek": "^3.0.5",
+    "@ai-sdk/react": "^4.0.15",
     "@auth/prisma-adapter": "^2.11.2",
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^7.8.0",
@@ -17,6 +19,7 @@
     "@tiptap/pm": "^3.27.1",
     "@tiptap/react": "^3.27.1",
     "@tiptap/starter-kit": "^3.27.1",
+    "ai": "^7.0.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "dotenv": "^17.4.2",
