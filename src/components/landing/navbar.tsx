@@ -4,8 +4,14 @@ import Link from "next/link";
 import { useTheme } from "next-themes";
 import { Moon, Sun } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { handleSignOut } from "@/lib/actions";
+import type { User } from "next-auth";
 
-const Navbar = () => {
+interface NavbarProps {
+  user?: User | null;
+}
+
+const Navbar = ({ user }: NavbarProps) => {
   const { resolvedTheme, setTheme } = useTheme();
 
   return (
@@ -40,9 +46,22 @@ const Navbar = () => {
             <Sun className="size-4 scale-100 rotate-0 transition-all dark:scale-0 dark:-rotate-90" />
             <Moon className="absolute size-4 scale-0 rotate-90 transition-all dark:scale-100 dark:rotate-0" />
           </Button>
-          <Button asChild size="sm">
-            <Link href="/login">登录 / 注册</Link>
-          </Button>
+          {user ? (
+            <>
+              <span className="text-muted-foreground max-w-40 truncate text-sm">
+                {user.email}
+              </span>
+              <form action={handleSignOut}>
+                <Button type="submit" variant="outline" size="sm">
+                  退出
+                </Button>
+              </form>
+            </>
+          ) : (
+            <Button asChild size="sm">
+              <Link href="/login">登录 / 注册</Link>
+            </Button>
+          )}
         </div>
       </div>
     </header>

@@ -2,14 +2,14 @@ import {
   CoreShowcase,
   Features,
   Hero,
-  Navbar,
+  NavbarAuth,
   Footer,
 } from "@/components/landing";
 
-const Home = () => {
+const Home = async () => {
   return (
     <div>
-      <Navbar />
+      <NavbarAuth />
       <main className="flex-1">
         <Hero />
         <Features />
