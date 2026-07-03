@@ -21,7 +21,9 @@ export default async function DashboardLayout({
         <aside className="border-border bg-muted/30 w-64 shrink-0 border-r">
           <Sidebar docs={docs} user={session.user} />
         </aside>
-        <main className="flex-1 overflow-auto">{children}</main>
+        <main className="min-h-0 flex-1 overflow-x-hidden overflow-y-auto">
+          {children}
+        </main>
         <aside className="border-border hidden w-80 shrink-0 overflow-hidden border-l xl:flex xl:flex-col">
           <AiChat />
         </aside>

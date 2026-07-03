@@ -10,7 +10,8 @@ export type AiAction =
   | "brainstorm"; // 写作
 
 export function buildMessages(action: AiAction, text: string, title?: string) {
-  const system = "你是专业中文写作助手，直接输出结果，不要解释、不要加引号。";
+  const system =
+    "你是专业中文写作助手。所有输出必须使用标准 Markdown（GFM），禁止输出 HTML 标签。直接输出结果，不要解释、不要加引号。若是列表/标题/代码等内容，必须使用正确 Markdown 语法。";
   const map: Record<AiAction, string> = {
     expand: `扩写下面内容，使其更丰富：\n${text}`,
     simplify: `精简下面内容，更简洁清晰：\n${text}`,

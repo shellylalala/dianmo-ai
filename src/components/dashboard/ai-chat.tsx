@@ -1,7 +1,9 @@
 "use client";
 
-import { useRef, useState } from "react";
+import { useMemo, useRef, useState } from "react";
 import { SendHorizonal, Copy, CornerDownLeft, Sparkles } from "lucide-react";
+import DOMPurify from "dompurify";
+import { marked } from "marked";
 import { toast } from "sonner";
 import { Button } from "@/components/ui/button";
 import { Textarea } from "@/components/ui/textarea";
@@ -18,12 +20,30 @@ function uid() {
   return Math.random().toString(36).slice(2);
 }
 
+function markdownToSafeHtml(markdown: string) {
+  const rawHtml = marked.parse(markdown, {
+    gfm: true,
+    breaks: true,
+  }) as string;
+  return DOMPurify.sanitize(rawHtml);
+}
+
+function AssistantMarkdown({ content }: { content: string }) {
+  const html = useMemo(() => markdownToSafeHtml(content), [content]);
+  return (
+    <div
+      className="prose prose-sm prose-neutral dark:prose-invert max-w-none"
+      dangerouslySetInnerHTML={{ __html: html }}
+    />
+  );
+}
+
 export function AiChat() {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
   const [isStreaming, setIsStreaming] = useState(false);
   const bottomRef = useRef<HTMLDivElement>(null);
-  const { editorRef } = useEditorContext();
+  const { editorRef, persistNowRef } = useEditorContext();
 
   async function send() {
     const text = input.trim();
@@ -85,13 +105,16 @@ export function AiChat() {
     }
   }
 
-  function insertIntoEditor(content: string) {
+  async function insertIntoEditor(content: string) {
     const editor = editorRef.current;
     if (!editor) {
       toast.error("请先打开一个文档");
       return;
     }
-    editor.chain().focus().insertContent(content).run();
+
+    const html = markdownToSafeHtml(content);
+    editor.chain().focus().insertContent(html).run();
+    await persistNowRef.current?.();
     toast.success("已插入到编辑器");
   }
 
@@ -122,13 +145,19 @@ export function AiChat() {
                 className={`flex flex-col gap-1 ${msg.role === "user" ? "items-end" : "items-start"}`}
               >
                 <div
-                  className={`max-w-[90%] rounded-lg px-3 py-2 text-sm whitespace-pre-wrap ${
+                  className={`max-w-[90%] rounded-lg px-3 py-2 text-sm ${
                     msg.role === "user"
-                      ? "bg-primary text-primary-foreground"
+                      ? "bg-primary text-primary-foreground whitespace-pre-wrap"
                       : "bg-muted text-foreground"
                   }`}
                 >
-                  {msg.content || (
+                  {msg.content ? (
+                    msg.role === "assistant" ? (
+                      <AssistantMarkdown content={msg.content} />
+                    ) : (
+                      msg.content
+                    )
+                  ) : (
                     <span className="text-muted-foreground animate-pulse">
                       思考中…
                     </span>

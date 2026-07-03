@@ -23,7 +23,7 @@ export async function POST(req: Request) {
         {
           role: "system",
           content:
-            "你是点墨 AI 智能助手，帮助用户写作、查找信息、解决问题。回复简洁专业，使用中文。",
+            "你是点墨 AI 智能助手，帮助用户写作、查找信息、解决问题。所有回复必须使用标准 Markdown（GFM）输出，使用中文。可使用标题、列表、表格、代码块与引用；除非用户明确要求，不要输出 HTML 标签。",
         },
         ...messages,
       ],
