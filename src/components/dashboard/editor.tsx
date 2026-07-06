@@ -1,12 +1,12 @@
 "use client";
 
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useEditor, EditorContent } from "@tiptap/react";
 import { BubbleMenu } from "@tiptap/react/menus";
 import StarterKit from "@tiptap/starter-kit";
 import Placeholder from "@tiptap/extension-placeholder";
 import TaskList from "@tiptap/extension-task-list";
 import TaskItem from "@tiptap/extension-task-item";
-import { useCallback, useEffect, useRef, useState } from "react";
 import type { JSONContent } from "@tiptap/react";
 import DOMPurify from "dompurify";
 import { marked } from "marked";
@@ -27,6 +27,11 @@ import { useEditorContext } from "@/components/dashboard/editor-provider";
 import { EditorToolbar } from "@/components/dashboard/editor-toolbar";
 import { BlockHandle } from "@/components/dashboard/block-handle";
 import type { AiAction } from "@/lib/ai-prompts";
+import Collaboration from "@tiptap/extension-collaboration";
+import CollaborationCaret from "@tiptap/extension-collaboration-caret";
+import * as Y from "yjs";
+import { HocuspocusProvider } from "@hocuspocus/provider";
+import { useSession } from "next-auth/react";
 
 type SaveState = "saved" | "saving";
 
@@ -88,6 +93,7 @@ export function Editor({
   const [title, setTitle] = useState(initialTitle);
   const [save, setSave] = useState<SaveState>("saved");
   const [isAiRunning, setIsAiRunning] = useState(false);
+  const { data: session } = useSession();
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null);
   const { editorRef, persistNowRef } = useEditorContext();
 
@@ -110,14 +116,74 @@ export function Editor({
     [docId],
   );
 
+  const ydoc = useMemo(() => new Y.Doc(), []);
+  const provider = useMemo(
+    () =>
+      new HocuspocusProvider({
+        url: process.env.NEXT_PUBLIC_COLLAB_WS_URL ?? "ws://127.0.0.1:1234",
+        name: docId,
+        document: ydoc,
+        // 步骤 4 先不鉴权，步骤 6 再加 token
+      }),
+    [docId, ydoc],
+  );
+
+  // 清理
+  useEffect(() => {
+    return () => {
+      provider.destroy();
+      ydoc.destroy();
+    };
+  }, [provider, ydoc]);
+
+  // 稳定随机色（模块级常量，不在渲染期调用 Math.random）
+  const [userColor] = useState(
+    () =>
+      "#" +
+      Math.floor(Math.random() * 0xffffff)
+        .toString(16)
+        .padStart(6, "0"),
+  );
+
+  useEffect(() => {
+    provider.setAwarenessField("user", {
+      name: session?.user?.name ?? session?.user?.email ?? "匿名",
+      color: userColor,
+    });
+  }, [provider, session, userColor]);
+
   // ── Tiptap 编辑器 ──
   const editor = useEditor({
     immediatelyRender: false,
     extensions: [
-      StarterKit.configure({ heading: { levels: [1, 2, 3, 4, 5, 6] } }),
+      StarterKit.configure({
+        undoRedo: false, // ← 关掉 Tiptap 自带 undo/redo
+        heading: { levels: [1, 2, 3, 4, 5, 6] },
+      }),
       Placeholder.configure({ placeholder: "开始输入..." }),
       TaskList,
       TaskItem.configure({ nested: true }),
+      Collaboration.configure({ document: ydoc }),
+      CollaborationCaret.configure({
+        provider: provider,
+        user: {
+          name: session?.user?.name ?? session?.user?.email ?? "匿名",
+          color: userColor,
+        },
+        render: (user) => {
+          const cursor = document.createElement("span");
+          cursor.classList.add("collaboration-carets__caret");
+          cursor.style.borderLeft = `2px solid ${user.color as string}`;
+
+          const label = document.createElement("span");
+          label.classList.add("collaboration-carets__label");
+          label.style.backgroundColor = user.color as string;
+          label.textContent = (user.name as string) ?? "匿名";
+          cursor.appendChild(label);
+
+          return cursor;
+        },
+      }),
     ],
     content: initialContent ?? "",
     editorProps: {

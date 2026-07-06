@@ -75,6 +75,7 @@ model Document {
   id        String   @id @default(cuid())
   title     String   @default("无标题")
   content   Json?    // Tiptap JSON，P4 才真正写入
+  yDocState Bytes?   // Yjs 二进制数据
   ownerId   String
   folderId  String?
   order     Int      @default(0)

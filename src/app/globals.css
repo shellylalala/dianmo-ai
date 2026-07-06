@@ -336,3 +336,36 @@
     background 0.15s,
     box-shadow 0.15s;
 }
+
+/* 协同光标竖线 — 必须显式给高度否则不可见 */
+.collaboration-carets__caret {
+  position: relative;
+  display: inline-block;
+  height: 1.25em;
+  vertical-align: text-bottom;
+  margin-left: -1px;
+  margin-right: -1px;
+  pointer-events: none;
+  user-select: none;
+}
+
+/* 用户名标签（浮在竖线上方） */
+.collaboration-carets__label {
+  position: absolute;
+  bottom: calc(100% + 2px);
+  left: -1px;
+  font-size: 0.65rem;
+  line-height: 1;
+  padding: 0.15em 0.4em;
+  border-radius: 3px 3px 3px 0;
+  white-space: nowrap;
+  color: #fff;
+  pointer-events: none;
+  user-select: none;
+  z-index: 20;
+}
+
+/* 协同选区 - 半透明背景 */
+.collaboration-carets__selection {
+  opacity: 0.25;
+}
